@@ -1,0 +1,70 @@
+<canvas id="gameScreen" width="800" height="600">
+</canvas>
+<script>
+// canvas változók
+var c,cc;
+// player változók
+var px=py=50;
+var pd=40;
+// shooting változók
+var reloadTime = 10;
+var reloaded = reloadTime;
+// gombnyomás változók
+var keys = [];
+
+window.onload=function() {
+	c=document.getElementById('gameScreen');
+	cc=c.getContext('2d');
+	setInterval(update,1000/30);
+}
+
+// gombnyomások olvasása
+document.addEventListener('keydown', function(e) {
+	keys[e.keyCode] = true;
+	//console.log(e.keyCode);  //what am i pressing?
+});
+// gombnyomások kivétele
+document.addEventListener('keyup', function(e) {
+	keys[e.keyCode] = false;
+});
+
+function update() {
+	// gombcheckek
+	if (keys[87]){
+			// fel
+			if(py>(pd+1)) py-=15;
+			console.log("fel");
+		}
+	if (keys[83]){
+			// le
+			if(py<c.height-(pd+1)) py+=15;
+			console.log("le");
+		}
+	if (keys[65]){
+			// bal
+			if(px>(pd+1)) px-=15;
+			console.log("bal");
+		}
+	if (keys[68]){
+			// jobb
+			if(px<c.width-(pd+1)) px+=15;
+			console.log("jobb");
+		}
+	if (keys[32] && reloaded>=reloadTime){
+			reloaded=0;
+			var newBullet = new bullet();
+			console.log("pew");
+		}
+  //reload
+		if (reloaded<reloadTime) reloaded++;
+	//rajzolások
+	cc.fillStyle='black';
+	cc.fillRect(0,0,c.width,c.height);
+	cc.fillStyle='white';
+	if (py<(pd+1)) py=pd+1;
+	else if (py>c.height-(pd+1)) py=c.height-(pd+1);
+	if (px<(pd+1)) px=pd+1;
+	else if (px>c.width-(pd+1)) px=c.width-(pd+1);
+	cc.fillRect(px-pd/2,py-pd/2,pd,pd);
+}
+</script>
