@@ -9,12 +9,25 @@ var c,cc;
 var px=py=50;
 var pd=40;
 //shooting variables
-var reloadTime = 10;
+var reloadTime = 5;
 var reloaded = reloadTime;
 //bullet variables
-var bullets = [];
+var bulletList = [];
 //buttonpress variables
 var keys = [];
+
+
+///CLASSES
+//BULLET
+Bullet = function (){
+	var myBullet = {
+		x:px,
+		y:py,
+		spdX:17,
+		img:"./rcket.png",
+	};
+	bulletList.unshift(myBullet);
+}
 
 
 ///EVENT LISTENERS
@@ -37,22 +50,17 @@ window.onload=function() {
 	setInterval(update,1000/30);
 }
 
-//BULLET
-function Bullet(){
-	this.x=px;
-	this.y=py;
-	this.init = function(){
-		var bulletImg = new Image();
-    bulletImg.src = "./rcket.png";
-		bulletImg.onload=function(){
-    	cc.drawImage(bulletImg,this.x,this.y);
-
-			if(this.x > c.width){
-				bullets.pop();
-			}
-		}
+BulletFunction = function(bullet, i){
+	//position change
+	if(bullet.x < c.width+10)
+	{
+		bullet.x += bullet.spdX;
+		cc.fillRect(bullet.x-5,bullet.y,20,7);
 	}
+	else
+	  bulletList.splice(i,1);
 }
+
 
 //UPDATE
 function update() {
@@ -79,36 +87,35 @@ function update() {
 		}
 	if (keys[32] && reloaded>=reloadTime){
 			reloaded=0;
-			var bulletino = new Bullet();
-			bulletino.init();
-			bullets.unshift(bulletino);
+			Bullet();
+			// itt kell készítsek új golyót
+			// az hozzáadja magát a listába
+			// lent a foreach meghívja a golyófunkcióit, tehát
+			//az foglalkozik a golyó törlésével is
 			console.log("pew");
-			console.log(bullets[0]);
 		}
 
   //Reload
 		if (reloaded<reloadTime) reloaded++;
 
 	//Draw
+	//background
 	cc.fillStyle='black';
 	cc.fillRect(0,0,c.width,c.height);
+	//player
 	cc.fillStyle='white';
+	//don't go out of bounds then draw
 	if (py<(pd+1)) py=pd+1;
 	else if (py>c.height-(pd+1)) py=c.height-(pd+1);
 	if (px<(pd+1)) px=pd+1;
 	else if (px>c.width-(pd+1)) px=c.width-(pd+1);
 	cc.fillRect(px-pd/2,py-pd/2,pd,pd);
-	
-	for(var i = 0; i < bullets.length; i++)
-	{
-			bullets[i].x += 15;
 
-			/* Remove Offstage Bullets */
-
-			if(bullets[i].x > c.width)
-			{
-					bullets.pop();
-			}
+	//bulletDraw
+	cc.fillStyle='yellow';
+	for(var i = 0; i < bulletList.length; i++){
+		BulletFunction(bulletList[i],i);
 	}
 }
+
 </script>
