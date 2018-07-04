@@ -16,10 +16,9 @@ var bulletList = [];
 //buttonpress variables
 var keys = [];
 
-//background star randoms
-var starPosX;
-var starPosY;
-var starSize;
+//background stars variables
+var bigBGStars = [];
+var smallBGStars = [];
 
 ///CLASSES
 //BULLET
@@ -32,7 +31,26 @@ Bullet = function (){
 	};
 	bulletList.unshift(myBullet);
 }
-
+Stars = function(which){
+	var myStar = {
+		x:800,
+		y:Math.random()*600,
+		size:0,
+		speed:0
+	};
+	if(which=="big")
+	{
+		myStar.size = Math.random()*6+6;
+		myStar.speed = 5;
+		bigBGStars.push(myStar);
+	}
+	else if(which=="small")
+	{
+		myStar.size = Math.random()*6+1;
+		myStar.speed = 2;
+		smallBGStars.push(myStar);
+	}
+}
 
 ///EVENT LISTENERS
 //Read Buttons
@@ -51,7 +69,46 @@ document.addEventListener('keyup', function(e) {
 window.onload=function() {
 	c=document.getElementById('gameScreen');
 	cc=c.getContext('2d');
+
+	//generate stars
+	var i = 0
+	while(i < 40){
+		Stars("big");
+		Stars("small");
+		bigBGStars[i].x -= bigBGStars[i].speed*i*4;
+		smallBGStars[i].x -= smallBGStars[i].speed*i*10;
+		i++;
+	}
+	//start update loop for 30fps
 	setInterval(update,1000/30);
+}
+
+SmallStarsFunction = function(star, i){
+	//position change
+	if(star.x < 0)
+	{
+		smallBGStars.splice(i,1);
+		Stars("small");
+	}
+	else
+	{
+		star.x -= star.speed;
+		cc.fillRect(star.x,star.y,star.size,star.size);
+	}
+}
+
+BigStarsFunction = function(star, i){
+	//position change
+	if(star.x < 0)
+	{
+		bigBGStars.splice(i,1);
+		Stars("big");
+	}
+	else
+	{
+		star.x -= star.speed;
+		cc.fillRect(star.x,star.y,star.size,star.size);
+	}
 }
 
 BulletFunction = function(bullet, i){
@@ -108,14 +165,16 @@ function update() {
 	cc.fillRect(0,0,c.width,c.height);
 
 	//background-1(further)
-	starPosX = Math.random()*800;
-	starPosY = Math.random()*600;
-	starSize = Math.random()*10;
-	cc.fillStyle='rgb(150,200,200)';
-	cc.fillRect(starPosX,starPosY,starSize,starSize);
+	cc.fillStyle='rgb(25,50,50)';
+	for(var i = 0; i < smallBGStars.length; i++){
+		SmallStarsFunction(smallBGStars[i],i);
+	}
 
 	//background-2(closer)
-
+	cc.fillStyle='rgb(100,150,150)';
+	for(var i = 0; i < bigBGStars.length; i++){
+		BigStarsFunction(bigBGStars[i],i);
+	}
 
 	//player
 	cc.fillStyle='white';
