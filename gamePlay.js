@@ -1,7 +1,3 @@
-<canvas id="gameScreen" width="800" height="600">
-</canvas>
-<script>
-
 ///GLOBAL VARIABLES
 //canvas variables
 var c,cc;
@@ -195,5 +191,3 @@ function update() {
 		BulletFunction(bulletList[i],i);
 	}
 }
-
-</script>
