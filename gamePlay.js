@@ -1,6 +1,8 @@
 ///GLOBAL VARIABLES
 //canvas variables
 var c,cc;
+//buttonpress variables
+var keys = [];
 //player variables
 var px=py=50;
 var pd=40;
@@ -9,12 +11,10 @@ var reloadTime = 5;
 var reloaded = reloadTime;
 //bullet variables
 var bulletList = [];
-//buttonpress variables
-var keys = [];
-
 //background stars variables
 var bigBGStars = [];
 var smallBGStars = [];
+var boomParticles = [];
 
 ///CLASSES
 //BULLET
@@ -46,6 +46,19 @@ Stars = function(which){
 		myStar.speed = 2;
 		smallBGStars.push(myStar);
 	}
+}
+Boom = function (posX,posY){
+	var myBoom = [];
+	for(var i = 0; i < 10; i++){
+		var myBoomPart = {
+			x:posX,
+			y:posY,
+			size:20,
+			angle:Math.random()*360
+		};
+		myBoom.push(myBoomPart);
+	}
+	boomParticles.unshift(myBoom);
 }
 
 ///EVENT LISTENERS
@@ -92,7 +105,6 @@ SmallStarsFunction = function(star, i){
 		cc.fillRect(star.x,star.y,star.size,star.size);
 	}
 }
-
 BigStarsFunction = function(star, i){
 	//position change
 	if(star.x < 0)
@@ -106,7 +118,6 @@ BigStarsFunction = function(star, i){
 		cc.fillRect(star.x,star.y,star.size,star.size);
 	}
 }
-
 BulletFunction = function(bullet, i){
 	//position change
 	if(bullet.x < c.width+10)
@@ -117,7 +128,21 @@ BulletFunction = function(bullet, i){
 	else
 	  bulletList.splice(i,1);
 }
-
+BoomFunction = function(boom, i){
+	//j particle-je menjen angle felé és
+	//[j].size-=0.1
+	if (boom[0].size > 0)
+	{
+		for (var j = 0; j < boom.length; j++){
+			cc.fillRect(boom[j].x,boom[j].y,boom[j].size,boom[j].size);
+			boom[j].x += Math.cos(boom[j].angle)*1.5;
+			boom[j].y += Math.sin(boom[j].angle)*1.5;
+			boom[j].size -= 0.5;
+		}
+	}
+	else
+		boomParticles.splice(i,1);
+}
 
 //UPDATE
 function update() {
@@ -125,22 +150,18 @@ function update() {
 	if (keys[87]){
 			//Up
 			if(py>(pd+1)) py-=15;
-			console.log("fel");
 		}
 	if (keys[83]){
 			//Down
 			if(py<c.height-(pd+1)) py+=15;
-			console.log("le");
 		}
 	if (keys[65]){
 			//Left
 			if(px>(pd+1)) px-=15;
-			console.log("bal");
 		}
 	if (keys[68]){
 			//Right
 			if(px<c.width-(pd+1)) px+=15;
-			console.log("jobb");
 		}
 	if (keys[32] && reloaded>=reloadTime){
 			reloaded=0;
@@ -149,8 +170,12 @@ function update() {
 			// az hozzáadja magát a listába
 			// lent a foreach meghívja a golyófunkcióit, tehát
 			//az foglalkozik a golyó törlésével is
-			console.log("pew");
 		}
+	if (keys[66] && reloaded>=reloadTime){
+			reloaded=-10;
+			// test boom_effect, kb mint a golyó?
+			Boom(px-8,py-8);
+	}
 
   //Reload
 		if (reloaded<reloadTime) reloaded++;
@@ -161,13 +186,13 @@ function update() {
 	cc.fillRect(0,0,c.width,c.height);
 
 	//background-1(further)
-	cc.fillStyle='rgb(25,50,50)';
+	cc.fillStyle="rgb(25,50,50)";
 	for(var i = 0; i < smallBGStars.length; i++){
 		SmallStarsFunction(smallBGStars[i],i);
 	}
 
 	//background-2(closer)
-	cc.fillStyle='rgb(100,150,150)';
+	cc.fillStyle="rgb(100,150,150)";
 	for(var i = 0; i < bigBGStars.length; i++){
 		BigStarsFunction(bigBGStars[i],i);
 	}
@@ -182,8 +207,14 @@ function update() {
 	cc.fillRect(px-pd/2,py-pd/2,pd,pd);
 
 	//enemies
-	cc.fillStyle='rgb(230,20,20)';
+	cc.fillStyle="rgb(230,20,20)";
 	cc.fillRect(600,300,60,60);
+
+	//boom
+	for(var i = 0; i < boomParticles.length; i++){
+		cc.fillStyle="rgb(255," + (180-(boomParticles[i][0].size*5)) + ",0)";
+		BoomFunction(boomParticles[i],i);
+	}
 
 	//bulletDraw
 	cc.fillStyle='yellow';
