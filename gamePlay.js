@@ -15,13 +15,16 @@ var bulletList = [];
 var bigBGStars = [];
 var smallBGStars = [];
 var boomParticles = [];
+//enemy variables
+var spawnTimer = 60;
+var enemies = [];
 
 ///CLASSES
 //BULLET
 Bullet = function (){
 	var myBullet = {
 		x:px,
-		y:py,
+		y:py-2.5,
 		spdX:17,
 		img:"./rcket.png",
 	};
@@ -59,6 +62,15 @@ Boom = function (posX,posY){
 		myBoom.push(myBoomPart);
 	}
 	boomParticles.unshift(myBoom);
+}
+Enemy = function (){
+	var myEnemy = {
+		x:800,
+		y:Math.random()*500+50,
+		size:50,
+		dir:Math.random()*150+195,
+		speed:Math.random()*5+5
+	};
 }
 
 ///EVENT LISTENERS
@@ -143,8 +155,13 @@ BoomFunction = function(boom, i){
 	else
 		boomParticles.splice(i,1);
 }
+EnemyFunction = function(enemy, i){
+	if (enemy.y<(enemy.size+1)) enemy.y=enemy.size+1;
+	else if (enemy.y>c.height-(enemy.size+1)) enemy.y=c.height-(pd+1);
+	if (enemy.x<(enemy.size+1)) enemy.x=enemy.size+1; ///###ITTTARTOTTAMLOLAZTSEMTUDOMMITCSINÁLTAMÉPPENHAJAJAJAJ
+}
 
-//UPDATE
+//UPDATE ##Main##
 function update() {
 	//Button Checks
 	if (keys[87]){
@@ -206,9 +223,16 @@ function update() {
 	else if (px>c.width-(pd+1)) px=c.width-(pd+1);
 	cc.fillRect(px-pd/2,py-pd/2,pd,pd);
 
-	//enemies
-	cc.fillStyle="rgb(230,20,20)";
-	cc.fillRect(600,300,60,60);
+	//enemy spawning
+	if (spawnTimer >= 60) spawnTimer=0;
+	if (spawnTimer = 0) Enemy();
+	cc.fillStyle="rgb(255,0,60)";
+	//enemy function
+	//for(var i = 0; i < enemies.length; i++){
+	//		EnemyFunction(enemies[i],i);
+	//}
+
+	cc.fillRect(600,300,50,50);
 
 	//boom
 	for(var i = 0; i < boomParticles.length; i++){
@@ -217,7 +241,7 @@ function update() {
 	}
 
 	//bulletDraw
-	cc.fillStyle='yellow';
+	cc.fillStyle="rgb(255,0,255)";
 	for(var i = 0; i < bulletList.length; i++){
 		BulletFunction(bulletList[i],i);
 	}
