@@ -1,4 +1,4 @@
-///GLOBAL VARIABLES
+///GLOBAL VARIABLES macskafüle
 //canvas variables
 var c,cc;
 //buttonpress variables
@@ -68,9 +68,13 @@ Enemy = function (){
 		x:800,
 		y:Math.random()*500+50,
 		size:50,
-		dir:Math.random()*150+195,
+		dir:Math.random()*170+215,
 		speed:Math.random()*5+5
 	};
+	this.ChangeDirection = function(){
+		this.dir = Math.random()*170+215;
+		this.speed = Math.random()*5+5;
+	}
 }
 
 ///EVENT LISTENERS
@@ -90,6 +94,7 @@ document.addEventListener('keyup', function(e) {
 window.onload=function() {
 	c=document.getElementById('gameScreen');
 	cc=c.getContext('2d');
+	cc.font='32px 8bit';
 
 	//generate stars
 	var i = 0
@@ -156,9 +161,20 @@ BoomFunction = function(boom, i){
 		boomParticles.splice(i,1);
 }
 EnemyFunction = function(enemy, i){
-	if (enemy.y<(enemy.size+1)) enemy.y=enemy.size+1;
-	else if (enemy.y>c.height-(enemy.size+1)) enemy.y=c.height-(pd+1);
-	if (enemy.x<(enemy.size+1)) enemy.x=enemy.size+1; ///###ITTTARTOTTAMLOLAZTSEMTUDOMMITCSINÁLTAMÉPPENHAJAJAJAJ
+  //don't go out of bounds (y axis)
+	if (enemy.y<(enemy.size)){
+		enemy.y=enemy.size;
+		enemy.ChangeDirection();
+	}
+	else if (enemy.y>c.height-(enemy.size)){
+		enemy.y=c.height-(pd);
+		enemy.ChangeDirection();
+	}
+	//kimegy a képernyőről
+	if (enemy.x<(enemy.size-enemy.size/2)){
+		//Missed(enemy.y);
+		enemies.splice(i,1);
+	}
 }
 
 //UPDATE ##Main##
@@ -217,10 +233,10 @@ function update() {
 	//player
 	cc.fillStyle='white';
 	//don't go out of bounds then draw
-	if (py<(pd+1)) py=pd+1;
-	else if (py>c.height-(pd+1)) py=c.height-(pd+1);
-	if (px<(pd+1)) px=pd+1;
-	else if (px>c.width-(pd+1)) px=c.width-(pd+1);
+	if (py<(pd+1)) py=pd;
+	else if (py>c.height-(pd+1)) py=c.height-(pd);
+	if (px<(pd+1)) px=pd;
+	else if (px>c.width-(pd+1)) px=c.width-(pd);
 	cc.fillRect(px-pd/2,py-pd/2,pd,pd);
 
 	//enemy spawning
@@ -231,7 +247,6 @@ function update() {
 	//for(var i = 0; i < enemies.length; i++){
 	//		EnemyFunction(enemies[i],i);
 	//}
-
 	cc.fillRect(600,300,50,50);
 
 	//boom
@@ -245,4 +260,12 @@ function update() {
 	for(var i = 0; i < bulletList.length; i++){
 		BulletFunction(bulletList[i],i);
 	}
+
+
+	cc.fillText("Let's play",400,300);
+
+
+	//pink filter
+	cc.fillStyle="rgba(255,0,255,0.15)";
+	cc.fillRect(0,0,c.width,c.height);
 }
