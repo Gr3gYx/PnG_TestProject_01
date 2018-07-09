@@ -35,9 +35,8 @@
     background-color: lightgrey;
     text-align: center;
 }
-@font-face {
-    font-family: '8bit';
-    src: url('./8bit.ttf') format('truetype');
-    font-weight: normal;
-    font-style: normal;
+#gameScreen
+{
+  background-color:black;
+  border:1px solid grey;
 }

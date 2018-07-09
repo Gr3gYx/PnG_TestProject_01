@@ -4,10 +4,11 @@ var c,cc;
 //buttonpress variables
 var keys = [];
 //player variables
-var px=py=50;
+var px=100;
+var py=350;
 var pd=40;
 //shooting variables
-var reloadTime = 5;
+var reloadTime = 15;
 var reloaded = reloadTime;
 //bullet variables
 var bulletList = [];
@@ -16,15 +17,17 @@ var bigBGStars = [];
 var smallBGStars = [];
 var boomParticles = [];
 //enemy variables
-var spawnTimer = 60;
+var spawnTimer = 30;
 var enemies = [];
+var goneTexts = [];
+
 
 ///CLASSES
 //BULLET
 Bullet = function (){
 	var myBullet = {
 		x:px,
-		y:py-2.5,
+		y:py,
 		spdX:17,
 		img:"./rcket.png",
 	};
@@ -56,7 +59,7 @@ Boom = function (posX,posY){
 		var myBoomPart = {
 			x:posX,
 			y:posY,
-			size:20,
+			size:40,
 			angle:Math.random()*360
 		};
 		myBoom.push(myBoomPart);
@@ -65,17 +68,29 @@ Boom = function (posX,posY){
 }
 Enemy = function (){
 	var myEnemy = {
-		x:800,
+		x:825,
 		y:Math.random()*500+50,
 		size:50,
-		dir:Math.random()*170+215,
-		speed:Math.random()*5+5
+		dir:Math.random()*140,
+		speed:Math.random()*5+2,
+		timeToChange:30
 	};
-	this.ChangeDirection = function(){
-		this.dir = Math.random()*170+215;
-		this.speed = Math.random()*5+5;
-	}
+	myEnemy.ChangeDirection = function(){
+		this.dir = Math.random()*140;
+		this.speed = Math.random()*5+2;
+		this.timeToChange = 20
+	};
+	enemies.unshift(myEnemy);
 }
+EnemyGoneText = function(whereY){
+	var newGoner = {
+		x:5,
+		y:whereY,
+		timeToShow:30
+	};
+	goneTexts.unshift(newGoner);
+}
+
 
 ///EVENT LISTENERS
 //Read Buttons
@@ -94,8 +109,7 @@ document.addEventListener('keyup', function(e) {
 window.onload=function() {
 	c=document.getElementById('gameScreen');
 	cc=c.getContext('2d');
-	cc.font='32px 8bit';
-
+	cc.font = "22px OCR A";
 	//generate stars
 	var i = 0
 	while(i < 40){
@@ -119,7 +133,7 @@ SmallStarsFunction = function(star, i){
 	else
 	{
 		star.x -= star.speed;
-		cc.fillRect(star.x,star.y,star.size,star.size);
+		cc.fillRect(star.x-(star.size/2),star.y-(star.size/2),star.size,star.size);
 	}
 }
 BigStarsFunction = function(star, i){
@@ -132,7 +146,7 @@ BigStarsFunction = function(star, i){
 	else
 	{
 		star.x -= star.speed;
-		cc.fillRect(star.x,star.y,star.size,star.size);
+		cc.fillRect(star.x-(star.size/2),star.y-(star.size/2),star.size,star.size);
 	}
 }
 BulletFunction = function(bullet, i){
@@ -140,7 +154,7 @@ BulletFunction = function(bullet, i){
 	if(bullet.x < c.width+10)
 	{
 		bullet.x += bullet.spdX;
-		cc.fillRect(bullet.x-5,bullet.y,20,7);
+		cc.fillRect(bullet.x-5,bullet.y-5,20,10);
 	}
 	else
 	  bulletList.splice(i,1);
@@ -148,33 +162,50 @@ BulletFunction = function(bullet, i){
 BoomFunction = function(boom, i){
 	//j particle-je menjen angle felé és
 	//[j].size-=0.1
-	if (boom[0].size > 0)
-	{
+	if (boom[0].size > 0)	{
 		for (var j = 0; j < boom.length; j++){
-			cc.fillRect(boom[j].x,boom[j].y,boom[j].size,boom[j].size);
+			cc.fillRect(boom[j].x-(boom[j].size/4),boom[j].y-(boom[j].size/4),boom[j].size,boom[j].size);
 			boom[j].x += Math.cos(boom[j].angle)*1.5;
 			boom[j].y += Math.sin(boom[j].angle)*1.5;
-			boom[j].size -= 0.5;
+			boom[j].size -= 1.5;
 		}
 	}
 	else
 		boomParticles.splice(i,1);
 }
 EnemyFunction = function(enemy, i){
-  //don't go out of bounds (y axis)
+	enemy.timeToChange--;
+  //don't go out of bounds (y axis), changeDirections
 	if (enemy.y<(enemy.size)){
 		enemy.y=enemy.size;
 		enemy.ChangeDirection();
 	}
 	else if (enemy.y>c.height-(enemy.size)){
-		enemy.y=c.height-(pd);
+		enemy.y=c.height-(enemy.size);
 		enemy.ChangeDirection();
 	}
-	//kimegy a képernyőről
-	if (enemy.x<(enemy.size-enemy.size/2)){
-		//Missed(enemy.y);
+	if (enemy.timeToChange<=0)
+	{
+		enemy.ChangeDirection();
+	}
+	//do the moving part
+	enemy.x -= Math.abs(Math.cos(enemy.dir)*enemy.speed);
+	enemy.y += Math.sin(enemy.dir)*enemy.speed;
+
+	//kimegy a képernyőről balra
+	if (enemy.x<(0-enemy.size/2)){
+		EnemyGoneText(enemy.y);
 		enemies.splice(i,1);
 	}
+	//draw
+	cc.fillRect(enemy.x-(enemy.size/2),enemy.y-(enemy.size/2),enemy.size,enemy.size);
+}
+GonerTextFunction = function(text, i){
+	if(text.timeToShow>=0){
+		cc.fillText("missed",5,text.y);
+		text.timeToShow--;
+	}
+	else goneTexts.splice(i,1);
 }
 
 //UPDATE ##Main##
@@ -211,7 +242,7 @@ function update() {
 	}
 
   //Reload
-		if (reloaded<reloadTime) reloaded++;
+	if (reloaded<reloadTime) reloaded++;
 
 	//Draw
   //background-main
@@ -231,7 +262,7 @@ function update() {
 	}
 
 	//player
-	cc.fillStyle='white';
+	cc.fillStyle="rgb(100,210,210)";
 	//don't go out of bounds then draw
 	if (py<(pd+1)) py=pd;
 	else if (py>c.height-(pd+1)) py=c.height-(pd);
@@ -241,31 +272,42 @@ function update() {
 
 	//enemy spawning
 	if (spawnTimer >= 60) spawnTimer=0;
-	if (spawnTimer = 0) Enemy();
+	if (spawnTimer == 0) Enemy();
+	spawnTimer++;
+	//enemy Color
 	cc.fillStyle="rgb(255,0,60)";
 	//enemy function
-	//for(var i = 0; i < enemies.length; i++){
-	//		EnemyFunction(enemies[i],i);
-	//}
-	cc.fillRect(600,300,50,50);
+	for(var i = 0; i < enemies.length; i++){
+		EnemyFunction(enemies[i],i);
+	}
 
 	//boom
 	for(var i = 0; i < boomParticles.length; i++){
-		cc.fillStyle="rgb(255," + (180-(boomParticles[i][0].size*5)) + ",0)";
+		cc.fillStyle="rgb(255," + (200-(boomParticles[i][0].size*2.5)) + ",0)";
 		BoomFunction(boomParticles[i],i);
 	}
 
 	//bulletDraw
-	cc.fillStyle="rgb(255,0,255)";
+	cc.fillStyle="rgb(255,60,255)";
 	for(var i = 0; i < bulletList.length; i++){
 		BulletFunction(bulletList[i],i);
 	}
 
-
-	cc.fillText("Let's play",400,300);
-
+	//'missed'Texts
+	cc.fillStyle="rgb(255,180,255)";
+	for(var i = 0; i < goneTexts.length; i++){
+		GonerTextFunction(goneTexts[i], i);
+	}
 
 	//pink filter
-	cc.fillStyle="rgba(255,0,255,0.15)";
+	cc.fillStyle="rgba(255,0,255,0.10)";
 	cc.fillRect(0,0,c.width,c.height);
+
+  //starting text
+	if (performance.now()<5000){
+		spawnTimer=30;
+	  cc.fillStyle = 'white';
+		cc.fillText("Use 'WASD' to move and SPACE to shoot.", 150, 200);
+		cc.fillText("Try to shoot all enemies coming towards you.", 110, 300);
+	}
 }
