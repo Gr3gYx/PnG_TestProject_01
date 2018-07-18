@@ -7,6 +7,7 @@ var keys = [];
 var px=100;
 var py=350;
 var pd=40;
+var alive=true;
 //shooting variables
 var reloadTime = 15;
 var reloaded = reloadTime;
@@ -123,6 +124,26 @@ window.onload=function() {
 	setInterval(update,1000/30);
 }
 
+PlayerFunction = function(){
+	if (py<(pd+1)) py=pd;
+	else if (py>c.height-(pd+1)) py=c.height-(pd);
+	if (px<(pd+1)) px=pd;
+	else if (px>c.width-(pd+1)) px=c.width-(pd);
+	//checkForCollision
+	for(var i = 0; i < enemies.length; i++){
+		//xy-méret/2 ellenfélle
+		if (Math.abs(px-enemies[i].x) <= (pd/2)+(enemies[i].size/2)
+		 && Math.abs(py-enemies[i].y) <= (pd/2)+(enemies[i].size/2))
+		alive=false;
+	}
+	cc.fillRect(px-pd/2,py-pd/2,pd,pd);
+}
+
+TimedEnemyFunction = function(){
+	if (spawnTimer >= 60) spawnTimer=0;
+	if (spawnTimer == 0) Enemy();
+	spawnTimer++;
+}
 SmallStarsFunction = function(star, i){
 	//position change
 	if(star.x < 0)
@@ -207,9 +228,15 @@ GonerTextFunction = function(text, i){
 	}
 	else goneTexts.splice(i,1);
 }
+StartTextFunction = function(){
+	spawnTimer=30;
+	cc.fillText("Use 'WASD' to move and SPACE to shoot.", 150, 200);
+	cc.fillText("Try to shoot all enemies coming towards you.", 110, 300);
+}
 
 //UPDATE ##Main##
 function update() {
+	if(alive){
 	//Button Checks
 	if (keys[87]){
 			//Up
@@ -263,17 +290,10 @@ function update() {
 
 	//player
 	cc.fillStyle="rgb(100,210,210)";
-	//don't go out of bounds then draw
-	if (py<(pd+1)) py=pd;
-	else if (py>c.height-(pd+1)) py=c.height-(pd);
-	if (px<(pd+1)) px=pd;
-	else if (px>c.width-(pd+1)) px=c.width-(pd);
-	cc.fillRect(px-pd/2,py-pd/2,pd,pd);
+	PlayerFunction();
 
 	//enemy spawning
-	if (spawnTimer >= 60) spawnTimer=0;
-	if (spawnTimer == 0) Enemy();
-	spawnTimer++;
+	TimedEnemyFunction();
 	//enemy Color
 	cc.fillStyle="rgb(255,0,60)";
 	//enemy function
@@ -283,7 +303,7 @@ function update() {
 
 	//boom
 	for(var i = 0; i < boomParticles.length; i++){
-		cc.fillStyle="rgb(255," + (200-(boomParticles[i][0].size*2.5)) + ",0)";
+		cc.fillStyle="rgba(255," + (200-(boomParticles[i][0].size*2.5)) + ",0,0.6)";
 		BoomFunction(boomParticles[i],i);
 	}
 
@@ -304,10 +324,9 @@ function update() {
 	cc.fillRect(0,0,c.width,c.height);
 
   //starting text
+	cc.fillStyle = 'white';
 	if (performance.now()<5000){
-		spawnTimer=30;
-	  cc.fillStyle = 'white';
-		cc.fillText("Use 'WASD' to move and SPACE to shoot.", 150, 200);
-		cc.fillText("Try to shoot all enemies coming towards you.", 110, 300);
+		StartTextFunction();
 	}
+}
 }
