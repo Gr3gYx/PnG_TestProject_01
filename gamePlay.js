@@ -7,6 +7,7 @@ var keys = [];
 var px=100;
 var py=350;
 var pd=40;
+var ps=10;
 var alive=true;
 //shooting variables
 var reloadTime = 15;
@@ -111,6 +112,7 @@ window.onload=function() {
 	c=document.getElementById('gameScreen');
 	cc=c.getContext('2d');
 	cc.font = "22px OCR A";
+	cc.textAlign='center';
 	//generate stars
 	var i = 0
 	while(i < 40){
@@ -125,24 +127,32 @@ window.onload=function() {
 }
 
 PlayerFunction = function(){
-	if (py<(pd+1)) py=pd;
-	else if (py>c.height-(pd+1)) py=c.height-(pd);
-	if (px<(pd+1)) px=pd;
-	else if (px>c.width-(pd+1)) px=c.width-(pd);
-	//checkForCollision
-	for(var i = 0; i < enemies.length; i++){
-		//xy-méret/2 ellenfélle
-		if (Math.abs(px-enemies[i].x) <= (pd/2)+(enemies[i].size/2)
-		 && Math.abs(py-enemies[i].y) <= (pd/2)+(enemies[i].size/2))
-		alive=false;
+	if(alive){
+		if (py<(pd+1)) py=pd;
+		else if (py>c.height-(pd+1)) py=c.height-(pd);
+		if (px<(pd+1)) px=pd;
+		else if (px>c.width-(pd+1)) px=c.width-(pd);
+		//checkForCollision
+		for(var i = 0; i < enemies.length; i++){
+			//xy-méret/2 ellenfélle
+			if (Math.abs(px-enemies[i].x) <= (pd/2)+(enemies[i].size/2)
+			 && Math.abs(py-enemies[i].y) <= (pd/2)+(enemies[i].size/2))
+			 {
+				 alive=false;
+				 Boom(px,py);
+				 pd = 0;
+			 }
+		}
 	}
 	cc.fillRect(px-pd/2,py-pd/2,pd,pd);
 }
 
 TimedEnemyFunction = function(){
-	if (spawnTimer >= 60) spawnTimer=0;
-	if (spawnTimer == 0) Enemy();
-	spawnTimer++;
+	if(alive){
+		if (spawnTimer >= 60) spawnTimer=0;
+		if (spawnTimer == 0) Enemy();
+		spawnTimer++;
+	}
 }
 SmallStarsFunction = function(star, i){
 	//position change
@@ -153,7 +163,7 @@ SmallStarsFunction = function(star, i){
 	}
 	else
 	{
-		star.x -= star.speed;
+		if (alive) star.x -= star.speed;
 		cc.fillRect(star.x-(star.size/2),star.y-(star.size/2),star.size,star.size);
 	}
 }
@@ -166,15 +176,25 @@ BigStarsFunction = function(star, i){
 	}
 	else
 	{
-		star.x -= star.speed;
+		if (alive) star.x -= star.speed;
 		cc.fillRect(star.x-(star.size/2),star.y-(star.size/2),star.size,star.size);
 	}
 }
 BulletFunction = function(bullet, i){
 	//position change
+	for(var j = 0; j < enemies.length; j++){
+		//xy-méret/2 ellenfélle
+		if (Math.abs(bullet.x-enemies[j].x) <= (20/2)+(enemies[j].size/2)
+		 && Math.abs(bullet.y-enemies[j].y) <= (10/2)+(enemies[j].size/2))
+		 {
+			 Boom(enemies[j].x,enemies[j].y);
+			 enemies.splice(j,1);
+			 bulletList.splice(i,1);
+		 }
+	}
 	if(bullet.x < c.width+10)
 	{
-		bullet.x += bullet.spdX;
+		if (alive) bullet.x += bullet.spdX;
 		cc.fillRect(bullet.x-5,bullet.y-5,20,10);
 	}
 	else
@@ -195,28 +215,30 @@ BoomFunction = function(boom, i){
 		boomParticles.splice(i,1);
 }
 EnemyFunction = function(enemy, i){
-	enemy.timeToChange--;
-  //don't go out of bounds (y axis), changeDirections
-	if (enemy.y<(enemy.size)){
-		enemy.y=enemy.size;
-		enemy.ChangeDirection();
-	}
-	else if (enemy.y>c.height-(enemy.size)){
-		enemy.y=c.height-(enemy.size);
-		enemy.ChangeDirection();
-	}
-	if (enemy.timeToChange<=0)
-	{
-		enemy.ChangeDirection();
-	}
-	//do the moving part
-	enemy.x -= Math.abs(Math.cos(enemy.dir)*enemy.speed);
-	enemy.y += Math.sin(enemy.dir)*enemy.speed;
+	if(alive){
+		enemy.timeToChange--;
+	  //don't go out of bounds (y axis), changeDirections
+		if (enemy.y<(enemy.size)){
+			enemy.y=enemy.size;
+			enemy.ChangeDirection();
+		}
+		else if (enemy.y>c.height-(enemy.size)){
+			enemy.y=c.height-(enemy.size);
+			enemy.ChangeDirection();
+		}
+		if (enemy.timeToChange<=0)
+		{
+			enemy.ChangeDirection();
+		}
+		//do the moving part
+		enemy.x -= Math.abs(Math.cos(enemy.dir)*enemy.speed);
+		enemy.y += Math.sin(enemy.dir)*enemy.speed;
 
-	//kimegy a képernyőről balra
-	if (enemy.x<(0-enemy.size/2)){
-		EnemyGoneText(enemy.y);
-		enemies.splice(i,1);
+		//kimegy a képernyőről balra
+		if (enemy.x<(0-enemy.size/2)){
+			EnemyGoneText(enemy.y);
+			enemies.splice(i,1);
+		}
 	}
 	//draw
 	cc.fillRect(enemy.x-(enemy.size/2),enemy.y-(enemy.size/2),enemy.size,enemy.size);
@@ -230,47 +252,51 @@ GonerTextFunction = function(text, i){
 }
 StartTextFunction = function(){
 	spawnTimer=30;
-	cc.fillText("Use 'WASD' to move and SPACE to shoot.", 150, 200);
-	cc.fillText("Try to shoot all enemies coming towards you.", 110, 300);
+	cc.fillText("Use 'WASD' to move and SPACE to shoot.", 400, 200);
+	cc.fillText("Try to shoot all enemies coming towards you.", 400, 300);
+}
+BlewUpTextFunction = function(){
+	cc.fillText("Game Over", 400, 200);
+	cc.fillText("Try to shoot all enemies coming towards you.", 400, 300);
 }
 
 //UPDATE ##Main##
 function update() {
 	if(alive){
-	//Button Checks
-	if (keys[87]){
-			//Up
-			if(py>(pd+1)) py-=15;
+		//Button Checks
+		if (keys[87]){
+				//Up
+				if(py>(pd+1)) py-=ps;
+			}
+		if (keys[83]){
+				//Down
+				if(py<c.height-(pd+1)) py+=ps;
+			}
+		if (keys[65]){
+				//Left
+				if(px>(pd+1)) px-=ps;
+			}
+		if (keys[68]){
+				//Right
+				if(px<c.width-(pd+1)) px+=ps;
+			}
+		if (keys[32] && reloaded>=reloadTime){
+				reloaded=0;
+				Bullet();
+				// itt kell készítsek új golyót
+				// az hozzáadja magát a listába
+				// lent a foreach meghívja a golyófunkcióit, tehát
+				//az foglalkozik a golyó törlésével is
+			}
+		if (keys[66] && reloaded>=reloadTime){
+				reloaded=-10;
+				// test boom_effect, kb mint a golyó?
+				Boom(px-8,py-8);
 		}
-	if (keys[83]){
-			//Down
-			if(py<c.height-(pd+1)) py+=15;
-		}
-	if (keys[65]){
-			//Left
-			if(px>(pd+1)) px-=15;
-		}
-	if (keys[68]){
-			//Right
-			if(px<c.width-(pd+1)) px+=15;
-		}
-	if (keys[32] && reloaded>=reloadTime){
-			reloaded=0;
-			Bullet();
-			// itt kell készítsek új golyót
-			// az hozzáadja magát a listába
-			// lent a foreach meghívja a golyófunkcióit, tehát
-			//az foglalkozik a golyó törlésével is
-		}
-	if (keys[66] && reloaded>=reloadTime){
-			reloaded=-10;
-			// test boom_effect, kb mint a golyó?
-			Boom(px-8,py-8);
+
+	  //Reload
+		if (reloaded<reloadTime) reloaded++;
 	}
-
-  //Reload
-	if (reloaded<reloadTime) reloaded++;
-
 	//Draw
   //background-main
 	cc.fillStyle='black';
@@ -328,5 +354,4 @@ function update() {
 	if (performance.now()<5000){
 		StartTextFunction();
 	}
-}
 }
