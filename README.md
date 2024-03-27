@@ -7,7 +7,7 @@ Development of a canvas-based game with JavaScript. Using 3rd party libraries is
 Exceptions are PIXI.js and TypeScript, using these earns extra points. The game should have a fixed
 800x600 px size. It is not necessary to support resizing.
 
-#Game
+## Game
 A simple side scroller shoot’em up game with space ships.
 - The space ship can be moved around on the game area, and it can shoot rockets.
 - The game’s background moves from right to left, with parallax scrolling (the background is
