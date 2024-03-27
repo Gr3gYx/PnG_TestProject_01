@@ -20,6 +20,6 @@ element).
 - If the space ship collides with an enemy object, it blows up (like the enemy space ships), the
 game indicates that it’s over, then it restarts.
 
-## Screenshots
+## Screenshot
 
 ![Screenshot](/Screenshot.PNG?raw=true "Screenshot.PNG")
