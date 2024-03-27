@@ -1,27 +1,47 @@
-///GLOBAL VARIABLES macskafüle
+﻿///GLOBAL VARIABLES macskafüle
 //canvas variables
 var c,cc;
+
 //buttonpress variables
 var keys = [];
+
 //player variables
 var px=100;
 var py=350;
 var pd=40;
-var ps=10;
+var ps=16;
 var alive=true;
+var restartTimer=60;
+var lives=10;
+var hearts="♥♥♥♥♥♥♥♥♥♥";
+
 //shooting variables
-var reloadTime = 15;
+var reloadTime = 10;
 var reloaded = reloadTime;
+var shoots = 0;
+
 //bullet variables
 var bulletList = [];
+
 //background stars variables
 var bigBGStars = [];
 var smallBGStars = [];
 var boomParticles = [];
+
 //enemy variables
-var spawnTimer = 30;
+var spawnTimer = 10;
 var enemies = [];
 var goneTexts = [];
+var killed = 0;
+var accuracy = 0;
+
+//background rgb lol
+var red=0;
+var blue=0;
+var green=0;
+var redToggle=true;
+var greenToggle=false;
+var blueToggle=false;
 
 
 ///CLASSES
@@ -31,7 +51,7 @@ Bullet = function (){
 		x:px,
 		y:py,
 		spdX:17,
-		img:"./rcket.png",
+		img:"./rcket.png"
 	};
 	bulletList.unshift(myBullet);
 }
@@ -74,12 +94,12 @@ Enemy = function (){
 		y:Math.random()*500+50,
 		size:50,
 		dir:Math.random()*140,
-		speed:Math.random()*5+2,
-		timeToChange:30
+		speed:Math.random()*10+2,
+		timeToChange:20
 	};
 	myEnemy.ChangeDirection = function(){
 		this.dir = Math.random()*140;
-		this.speed = Math.random()*5+2;
+		this.speed = Math.random()*10+2;
 		this.timeToChange = 20
 	};
 	enemies.unshift(myEnemy);
@@ -88,7 +108,7 @@ EnemyGoneText = function(whereY){
 	var newGoner = {
 		x:5,
 		y:whereY,
-		timeToShow:30
+		timeToShow:10
 	};
 	goneTexts.unshift(newGoner);
 }
@@ -149,7 +169,7 @@ PlayerFunction = function(){
 
 TimedEnemyFunction = function(){
 	if(alive){
-		if (spawnTimer >= 60) spawnTimer=0;
+		if (spawnTimer >= 20) spawnTimer=0;
 		if (spawnTimer == 0) Enemy();
 		spawnTimer++;
 	}
@@ -163,7 +183,7 @@ SmallStarsFunction = function(star, i){
 	}
 	else
 	{
-		if (alive) star.x -= star.speed;
+		if (alive && lives > 0) star.x -= star.speed;
 		cc.fillRect(star.x-(star.size/2),star.y-(star.size/2),star.size,star.size);
 	}
 }
@@ -176,7 +196,7 @@ BigStarsFunction = function(star, i){
 	}
 	else
 	{
-		if (alive) star.x -= star.speed;
+		if (alive && lives > 0) star.x -= star.speed;
 		cc.fillRect(star.x-(star.size/2),star.y-(star.size/2),star.size,star.size);
 	}
 }
@@ -190,11 +210,12 @@ BulletFunction = function(bullet, i){
 			 Boom(enemies[j].x,enemies[j].y);
 			 enemies.splice(j,1);
 			 bulletList.splice(i,1);
+			 killed++;
 		 }
 	}
 	if(bullet.x < c.width+10)
 	{
-		if (alive) bullet.x += bullet.spdX;
+		if (alive && lives > 0) bullet.x += bullet.spdX;
 		cc.fillRect(bullet.x-5,bullet.y-5,20,10);
 	}
 	else
@@ -215,7 +236,7 @@ BoomFunction = function(boom, i){
 		boomParticles.splice(i,1);
 }
 EnemyFunction = function(enemy, i){
-	if(alive){
+	if(alive && lives>0){
 		enemy.timeToChange--;
 	  //don't go out of bounds (y axis), changeDirections
 		if (enemy.y<(enemy.size)){
@@ -238,6 +259,8 @@ EnemyFunction = function(enemy, i){
 		if (enemy.x<(0-enemy.size/2)){
 			EnemyGoneText(enemy.y);
 			enemies.splice(i,1);
+			lives--;
+			hearts = hearts.substr(0,hearts.length-1);
 		}
 	}
 	//draw
@@ -245,24 +268,23 @@ EnemyFunction = function(enemy, i){
 }
 GonerTextFunction = function(text, i){
 	if(text.timeToShow>=0){
-		cc.fillText("missed",5,text.y);
+		cc.fillText("ELBASZTAD!",80,text.y);
 		text.timeToShow--;
 	}
 	else goneTexts.splice(i,1);
 }
 StartTextFunction = function(){
-	spawnTimer=30;
+	spawnTimer=15;
 	cc.fillText("Use 'WASD' to move and SPACE to shoot.", 400, 200);
 	cc.fillText("Try to shoot all enemies coming towards you.", 400, 300);
 }
 BlewUpTextFunction = function(){
-	cc.fillText("Game Over", 400, 200);
-	cc.fillText("Try to shoot all enemies coming towards you.", 400, 300);
+	cc.fillText("Szép vót'", 400, 200);
 }
 
 //UPDATE ##Main##
 function update() {
-	if(alive){
+	if(alive && lives > 0){
 		//Button Checks
 		if (keys[87]){
 				//Up
@@ -283,6 +305,7 @@ function update() {
 		if (keys[32] && reloaded>=reloadTime){
 				reloaded=0;
 				Bullet();
+				shoots++;
 				// itt kell készítsek új golyót
 				// az hozzáadja magát a listába
 				// lent a foreach meghívja a golyófunkcióit, tehát
@@ -342,16 +365,64 @@ function update() {
 	//'missed'Texts
 	cc.fillStyle="rgb(255,180,255)";
 	for(var i = 0; i < goneTexts.length; i++){
-		GonerTextFunction(goneTexts[i], i);
-	}
-
-	//pink filter
-	cc.fillStyle="rgba(255,0,255,0.10)";
-	cc.fillRect(0,0,c.width,c.height);
+		GonerTextFunction(goneTexts[i], i);		
+	}	
 
   //starting text
 	cc.fillStyle = 'white';
-	if (performance.now()<5000){
+	if (performance.now()<2500){
 		StartTextFunction();
 	}
+	
+	if (alive==false || lives <= 0){
+		restartTimer--;
+		BlewUpTextFunction();
+	}	
+	
+	if (restartTimer<=0){
+		location.reload();
+	}
+	
+	if (killed>=1 && shoots>=1){
+		accuracy=Math.round((killed/shoots)*100);
+	}	
+
+	cc.fillText(parseInt(performance.now()/1000)+" sec",400,20);
+	cc.fillText("Kills: "+killed,100,20);
+	cc.fillText("Accuracy: " +accuracy+ "%",700,20);
+
+	cc.fillText("Lives: "+hearts,400,590)
+
+
+	if (redToggle == true && red<255)
+		 red++;
+	else if (red>0)
+		 red--;
+	if (red==255) {
+		 greenToggle=true;
+		 blueToggle=false;
+		  }
+	
+	if (greenToggle == true && green<255)
+		 green++;
+	else if (green>0)
+		 green--;
+	if (green==255) {
+		 blueToggle=true;
+		 redToggle=false;
+		  }
+	
+	if (blueToggle == true && blue<255)
+		blue++;
+	else if (blue>0)
+		 blue--;
+	if (blue==255) {
+		redToggle=true; 
+		greenToggle=false;
+		 }
+
+	//filter
+	cc.fillStyle="rgba("+red+","+green+","+blue+",0.10)";
+	cc.fillRect(0,0,c.width,c.height);
+
 }
